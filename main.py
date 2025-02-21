@@ -1,16 +1,22 @@
+import sys
+import conversor
 from datetime import datetime
-from pytube.cli import on_progress
-from pytube import YouTube, streams
 
-class Conversor():
+class App:
     def __init__(self):
         self._urls = []
         self._number = int
         self._pathsafe = str
-        self._datetime = datetime.now().strftime("%Y%m%d")
-        self._config = r"./config.txt"
+        self._datetime = datetime.now().strftime('%Y%m%d')
+        self._config = r'./config.txt'
+        
+        self.functions = {
+                'l': [self.load_urls],
+                'h': [self.help, 'help'],
+                'q': [self.exit_program, 'exit']
+            }
 
-    
+
     def load_config(self):
         with open(self._config, "r") as file:
             for line in file.readlines():
@@ -31,50 +37,30 @@ class Conversor():
 
 
     def load_urls(self, path):
-        with open(path, "r") as file:
+        with open(path, 'r') as file:
             for line in file.readlines():
                 line = line.strip()
                 self._urls.append(line)
-                                  
-
-    def conversorMP3(self):
-        for url in self._urls:
-            try:
-                self._number += 1
-                yt = YouTube(url,
-                             on_progress_callback = on_progress)
-                aud = yt.streams.filter(only_audio=True).last()
-                name = f"AUD-{self._datetime}WA00000000"
-                name = name[:-len(str(self._number))]
-                name = name + str(self._number) + ".mp3"
-                print(f"{yt.title} ----- {name}")
-                aud.download(filename=name, output_path=self._pathsafe)
-                print("\n")
-            except Exception as e:
-                self._number -= 1
-                continue
 
 
-    def conversorMP4(self):
-        for url in self._urls:
-            try:
-                self._number += 1
-                yt = YouTube(url,
-                             on_progress_callback = on_progress)
-                aud = yt.streams.last()
-                name = f"AUD-{self._datetime}WA00000000"
-                name = name[:-len(str(self._number))]
-                name = name + str(self._number) + ".mp4"
-                print(f"{yt.title} ----- {name}")
-                aud.download(filename=name, output_path=self._pathsafe)
-                print("\n")
-            except Exception as e:
-                self._number -= 1
-                continue
+    def help(self):
+        for key, value in self.functions.items():
+            print(f'{key} : {value[1]}')
 
-if __name__ == "__main__":
-    con = Conversor()
-    con.load_config()
-    con.load_urls("./link.txt")
-    con.conversorMP3()
-    con.write_config()
+
+    def exit_program(self):
+        if input("Do you want to exit? (y/n): ").lower() == 'y':
+            sys.exit(0)
+
+
+    def command(self):
+        select = input('$_> ')
+        self.functions[select][0]()
+
+
+    def main(self):
+        print('     Simple program to download in old format mp3    \n')
+        print('\n h to help \n')
+
+        while True:
+            self.command()
